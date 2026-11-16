@@ -4,7 +4,8 @@ import '../models/receipt.dart';
 import '../models/receipt_line_item.dart';
 
 /// Fills the app with deterministic fake receipts dated around "now" so the
-/// charts and bill stack have something to show in a live demo. Ids are fixed,
+/// charts, the month-over-month comparison and the bill stack have something
+/// to show in a live demo. Ids are fixed,
 /// so running it twice overwrites instead of duplicating.
 class SeedDemoDataUsecase {
   SeedDemoDataUsecase(this._repository, {DateTime Function()? now})
@@ -13,7 +14,11 @@ class SeedDemoDataUsecase {
   final ReceiptRepository _repository;
   final DateTime Function() _now;
 
-  static const int count = 21;
+  static const int _recent = 21;
+  static const int _monthsBack = 5;
+  static const int _perOlderMonth = 18;
+
+  static const int count = _recent + _monthsBack * _perOlderMonth;
 
   static const List<
     ({String name, Category category, List<(String, double)> items})
@@ -55,37 +60,55 @@ class SeedDemoDataUsecase {
   Future<int> call() async {
     final now = _now();
     for (var i = 0; i < count; i++) {
-      final shop = _shops[i % _shops.length];
-      final scale = 1 + (i % 4) * 0.25;
-      final items = [
-        for (final (name, price) in shop.items)
-          ReceiptLineItem(
-            name: name,
-            price: (price * scale / 1000).round() * 1000,
-          ),
-      ];
+      await _repository.save(_build(i, now));
+    }
+    return count;
+  }
+
+  /// Spending level of each older month relative to a base month, so the trend
+  /// chart has some shape instead of identical bars.
+  static const List<double> _olderMonthFactors = [1.0, 0.8, 1.1, 0.9, 0.7];
+
+  Receipt _build(int i, DateTime now) {
+    final older = i >= _recent;
+    final k = older ? (i - _recent) % _perOlderMonth : i;
+    final monthsBack = older ? 1 + (i - _recent) ~/ _perOlderMonth : 0;
+    final shop = _shops[k % _shops.length];
+    final scale =
+        (1 + (k % 4) * 0.25) *
+        (older ? _olderMonthFactors[monthsBack - 1] : 1.0);
+    final items = [
+      for (final (name, price) in shop.items)
+        ReceiptLineItem(
+          name: name,
+          price: (price * scale / 1000).round() * 1000,
+        ),
+    ];
+    final DateTime when;
+    if (!older) {
       // Spread over the last ~20 days, a few per day for the recent week.
       final daysAgo = i < 14 ? i ~/ 2 : i - 7;
-      final when = DateTime(
+      when = DateTime(
         now.year,
         now.month,
         now.day - daysAgo,
         8 + (i * 3) % 12,
         (i * 17) % 60,
       );
-      await _repository.save(
-        Receipt(
-          id: 'demo-$i',
-          merchantName: shop.name,
-          dateTime: when,
-          total: items.fold<double>(0, (sum, it) => sum + it.price),
-          category: shop.category,
-          lineItems: items,
-          receiptNumber: 'D${1000 + i}',
-          createdAt: now,
-        ),
-      );
+    } else {
+      // Evenly across days 1..28 of the older month.
+      final day = 1 + k * 27 ~/ (_perOlderMonth - 1);
+      when = DateTime(now.year, now.month - monthsBack, day, 9 + k % 10);
     }
-    return count;
+    return Receipt(
+      id: 'demo-$i',
+      merchantName: shop.name,
+      dateTime: when,
+      total: items.fold<double>(0, (sum, it) => sum + it.price),
+      category: shop.category,
+      lineItems: items,
+      receiptNumber: 'D${1000 + i}',
+      createdAt: now,
+    );
   }
 }

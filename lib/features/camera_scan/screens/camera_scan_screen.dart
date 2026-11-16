@@ -1,17 +1,21 @@
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:material_ui/material_ui.dart';
 
 import '../../../app_scope.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../receipt_review/screens/review_screen.dart';
 import '../data/sample_receipts.dart';
-import '../services/receipt_image_processor.dart';
+import '../services/scan_pipeline.dart';
 import '../widgets/crop_overlay.dart';
 import '../widgets/flash_toggle_button.dart';
+
+/// Opens the live scan screen.
+void openScanScreen(BuildContext context) => Navigator.of(context)
+    .push(MaterialPageRoute<void>(builder: (_) => const CameraScanScreen()));
 
 class CameraScanScreen extends StatefulWidget {
   const CameraScanScreen({super.key});
@@ -22,7 +26,10 @@ class CameraScanScreen extends StatefulWidget {
 
 class _CameraScanScreenState extends State<CameraScanScreen> {
   CameraController? _controller;
-  String? _cameraError;
+
+  /// Why the camera is unusable: [_noCamera] or a [CameraException] code.
+  bool _noCamera = false;
+  String? _cameraErrorCode;
   bool _processing = false;
   FlashMode _flash = FlashMode.off;
   Rect _crop = const Rect.fromLTRB(0.08, 0.12, 0.92, 0.88);
@@ -37,7 +44,7 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        setState(() => _cameraError = 'No camera found on this device.');
+        setState(() => _noCamera = true);
         return;
       }
       final back = cameras.firstWhere(
@@ -60,11 +67,7 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
       setState(() => _controller = controller);
     } on CameraException catch (e) {
       if (mounted) {
-        setState(
-          () => _cameraError =
-              'Camera unavailable (${e.code}). Allow camera access, '
-              'or import an image instead.',
-        );
+        setState(() => _cameraErrorCode = e.code);
       }
     }
   }
@@ -75,6 +78,10 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
     super.dispose();
   }
 
+  void _toast(String message) =>
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+
   Future<void> _toggleFlash() async {
     final next = _flash == FlashMode.off ? FlashMode.torch : FlashMode.off;
     try {
@@ -83,13 +90,11 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
         setState(() => _flash = next);
       }
     } on CameraException catch (e) {
-      _toast('Flash unavailable (${e.code}).');
+      if (mounted) {
+        _toast(AppLocalizations.of(context).flashUnavailable(e.code));
+      }
     }
   }
-
-  void _toast(String message) =>
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
 
   Future<void> _capture() async {
     final controller = _controller;
@@ -100,7 +105,9 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
       final shot = await controller.takePicture();
       await _process(await shot.readAsBytes(), crop: _crop);
     } on CameraException catch (e) {
-      _toast('Capture failed (${e.code}).');
+      if (mounted) {
+        _toast(AppLocalizations.of(context).captureFailed(e.code));
+      }
     }
   }
 
@@ -108,23 +115,23 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
     if (_processing) {
       return;
     }
-    final file = await FilePicker.pickFile(type: FileType.image);
-    if (file == null) {
-      return;
+    final raw = await pickReceiptImage();
+    if (raw != null) {
+      await _process(raw);
     }
-    await _process(await file.readAsBytes());
   }
 
   Future<void> _pickSample() async {
+    final l10n = AppLocalizations.of(context);
     final sample = await showModalBottomSheet<SampleReceipt>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(
-              title: Text('Sample receipts'),
-              subtitle: Text('Demo data for trying the OCR and parser'),
+            ListTile(
+              title: Text(l10n.sampleReceiptsTitle),
+              subtitle: Text(l10n.sampleReceiptsSubtitle),
             ),
             for (final s in sampleReceipts)
               ListTile(
@@ -143,32 +150,32 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
     await _process(data.buffer.asUint8List());
   }
 
-  /// Normalizes [raw], runs OCR, parses the text and opens the review screen.
+  /// Runs OCR + parsing on [raw] and opens the review screen.
   Future<void> _process(Uint8List raw, {Rect? crop}) async {
     setState(() => _processing = true);
     final deps = AppScope.of(context);
+    final l10n = AppLocalizations.of(context);
     final navigator = Navigator.of(context);
     try {
-      final prepared = await prepareReceiptImage(raw, cropRect: crop);
-      final text = await deps.ocrService.recognize(prepared);
+      final result = await scanReceipt(deps, raw, crop: crop);
       if (!mounted) {
         return;
       }
-      if (text.trim().isEmpty) {
-        _toast('No text found. Adjust the frame or try another image.');
+      if (result == null) {
+        _toast(l10n.noTextFound);
         return;
       }
       await navigator.push(
         MaterialPageRoute<void>(
           builder: (_) => ReviewScreen.fromScan(
-            parsed: deps.parseReceiptText(text),
-            imageBytes: prepared,
+            parsed: result.parsed,
+            imageBytes: result.image,
           ),
         ),
       );
     } on Exception catch (e) {
       if (mounted) {
-        _toast('Scan failed: $e');
+        _toast(l10n.scanFailed('$e'));
       }
     } finally {
       if (mounted) {
@@ -211,27 +218,35 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final controller = _controller;
     final Widget body;
     if (_processing) {
       body = _message(
-        'Reading receipt…\n'
-        '${kIsWeb ? 'The first scan downloads the OCR language data and can take a while.' : ''}',
+        kIsWeb
+            ? '${l10n.readingReceipt}\n${l10n.firstScanWeb}'
+            : l10n.readingReceipt,
       );
-    } else if (_cameraError != null) {
-      body = _message(_cameraError!);
+    } else if (_noCamera) {
+      body = _message(l10n.noCamera);
+    } else if (_cameraErrorCode != null) {
+      body = _message(l10n.cameraUnavailable(_cameraErrorCode!));
     } else if (controller == null) {
       body = const Center(child: CircularProgressIndicator());
     } else {
       body = _preview(controller);
     }
+    final canCapture = controller != null && !_processing;
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: const Text('Scan receipt'),
+        title: Text(
+          l10n.scanTitle,
+          style: const TextStyle(color: Colors.white),
+        ),
         actions: [
           if (controller != null && !kIsWeb)
             FlashToggleButton(mode: _flash, onPressed: _toggleFlash),
@@ -248,27 +263,31 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
                 children: [
                   _SourceButton(
                     icon: Icons.photo_library_outlined,
-                    label: 'Import',
+                    label: l10n.importImage,
                     onPressed: _processing ? null : _import,
                   ),
-                  GestureDetector(
-                    onTap: controller == null || _processing ? null : _capture,
-                    child: Opacity(
-                      opacity: controller == null || _processing ? 0.3 : 1,
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          border: Border.all(color: Colors.white54, width: 4),
+                  Semantics(
+                    button: true,
+                    label: l10n.navScan,
+                    child: GestureDetector(
+                      onTap: canCapture ? _capture : null,
+                      child: Opacity(
+                        opacity: canCapture ? 1 : 0.3,
+                        child: Container(
+                          width: 68,
+                          height: 68,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            border: Border.all(color: Colors.white54, width: 4),
+                          ),
                         ),
                       ),
                     ),
                   ),
                   _SourceButton(
                     icon: Icons.receipt_long_outlined,
-                    label: 'Samples',
+                    label: l10n.samples,
                     onPressed: _processing ? null : _pickSample,
                   ),
                 ],

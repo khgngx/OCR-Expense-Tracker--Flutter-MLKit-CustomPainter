@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../../domain/models/receipt.dart';
+import '../../domain/models/receipt_filter.dart';
 import '../database/receipt_dao.dart';
 
 /// The only door features use to read/write receipts. Swapping sqflite for
@@ -14,6 +15,7 @@ abstract class ReceiptRepository {
   Future<Receipt?> getById(String id);
   Future<List<Receipt>> getAll({int limit, int offset});
   Future<List<Receipt>> getBetween(DateTime from, DateTime to);
+  Future<List<Receipt>> search(ReceiptFilter filter, {int limit, int offset});
 }
 
 class SqliteReceiptRepository implements ReceiptRepository {
@@ -47,4 +49,11 @@ class SqliteReceiptRepository implements ReceiptRepository {
   @override
   Future<List<Receipt>> getBetween(DateTime from, DateTime to) =>
       _dao.getBetween(from, to);
+
+  @override
+  Future<List<Receipt>> search(
+    ReceiptFilter filter, {
+    int limit = 50,
+    int offset = 0,
+  }) => _dao.search(filter, limit: limit, offset: offset);
 }

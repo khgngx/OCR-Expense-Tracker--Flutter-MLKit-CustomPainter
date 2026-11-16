@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ocr_expense_tracker/domain/models/category.dart';
 import 'package:ocr_expense_tracker/domain/models/receipt.dart';
@@ -97,5 +97,41 @@ void main() {
     );
     expect(a.shouldRepaint(same), isFalse);
     expect(a.shouldRepaint(other), isTrue);
+  });
+
+  test(
+    'bar chart paints a selected bar with a tooltip, even near the edges',
+    () {
+      final canvas = Canvas(PictureRecorder());
+      for (final index in [0, 2, 5]) {
+        expect(
+          () => BarChartPainter(
+            bars: [
+              for (var i = 0; i < 6; i++)
+                BarDatum(label: 'M$i', value: i * 1000.0),
+            ],
+            barColor: Colors.grey,
+            selectedColor: Colors.green,
+            gridColor: Colors.grey,
+            labelStyle: const TextStyle(fontSize: 10),
+            selectedIndex: index,
+            tooltipText: '5,000,000 VND',
+          ).paint(canvas, const Size(280, 200)),
+          returnsNormally,
+        );
+      }
+    },
+  );
+
+  test('bar chart repaints when the selection changes', () {
+    BarChartPainter make(int? sel) => BarChartPainter(
+      bars: const [BarDatum(label: 'a', value: 1)],
+      barColor: Colors.grey,
+      gridColor: Colors.grey,
+      labelStyle: const TextStyle(),
+      selectedIndex: sel,
+    );
+    expect(make(0).shouldRepaint(make(0)), isFalse);
+    expect(make(0).shouldRepaint(make(null)), isTrue);
   });
 }

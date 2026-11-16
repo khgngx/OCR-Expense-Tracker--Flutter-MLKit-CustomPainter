@@ -1,0 +1,246 @@
+{
+  "@@locale": "en",
+  "appTitle": "Expense Tracker",
+  "onboardingTitle1": "Scan receipts\nin seconds",
+  "onboardingBody1": "Point your camera at a receipt and let OCR fill in the details.",
+  "onboardingTitle2": "Know where your\nmoney goes",
+  "onboardingBody2": "Smart categories and charts show your spending at a glance.",
+  "onboardingTitle3": "Stay under\nbudget",
+  "onboardingBody3": "Set a monthly budget and track it day by day.",
+  "skip": "Skip",
+  "next": "Next",
+  "getStarted": "Get Started",
+  "greetingMorning": "Good morning",
+  "greetingAfternoon": "Good afternoon",
+  "greetingEvening": "Good evening",
+  "greetingSub": "Let's keep your spending on track",
+  "spentThisMonth": "Spent this month",
+  "moreThanLastMonth": "{percent}% more than last month",
+  "@moreThanLastMonth": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "lessThanLastMonth": "{percent}% less than last month",
+  "@lessThanLastMonth": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "sameAsLastMonth": "Same as last month",
+  "noLastMonthData": "No data for last month",
+  "quickScan": "Scan",
+  "quickImport": "Import",
+  "quickAdd": "Add",
+  "quickDemo": "Demo",
+  "recentTransactions": "Recent Transactions",
+  "seeAll": "See all",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "navHome": "Home",
+  "navAnalytics": "Analytics",
+  "navBills": "Bills",
+  "navSettings": "Settings",
+  "navScan": "Scan receipt",
+  "analyticsTitle": "Analytics",
+  "tabSpending": "Spending",
+  "tabTrends": "Trends",
+  "yourSpending": "Your Spending",
+  "totalSpent": "Total Spent",
+  "noSpending": "No spending recorded this month.",
+  "budgetUnder": "You're {percent}% under budget!",
+  "@budgetUnder": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetOver": "You're {percent}% over budget",
+  "@budgetOver": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetUnderHint": "Great job managing your spending this month.",
+  "budgetOverHint": "Consider slowing down for the rest of the month.",
+  "budgetLeft": "{amount} left of {budget}",
+  "@budgetLeft": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetSetTitle": "Set a monthly budget",
+  "budgetSetHint": "Track how much you can still spend.",
+  "trendLast7": "Last 7 days",
+  "trendLast6Months": "Last 6 months",
+  "weekTotal": "Week total: {amount}",
+  "@weekTotal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month",
+  "transactionsTitle": "All transactions",
+  "searchHint": "Search merchant",
+  "filterAll": "All",
+  "noReceipts": "No receipts yet. Tap the scan button to add one.",
+  "noResults": "Nothing matches your search.",
+  "loadFailed": "Could not load data: {error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deletedItem": "Deleted {name}",
+  "@deletedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "undo": "Undo",
+  "loadDemo": "Load demo data",
+  "demoLoaded": "Loaded {count} demo receipts.",
+  "@demoLoaded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "demoFailed": "Could not load demo data: {error}",
+  "@demoFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanTitle": "Scan receipt",
+  "importImage": "Import",
+  "samples": "Samples",
+  "sampleReceiptsTitle": "Sample receipts",
+  "sampleReceiptsSubtitle": "Demo data for trying the OCR and parser",
+  "readingReceipt": "Reading receipt…",
+  "firstScanWeb": "The first scan downloads the OCR language data and can take a while.",
+  "noTextFound": "No text found. Adjust the frame or try another image.",
+  "scanFailed": "Scan failed: {error}",
+  "@scanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraUnavailable": "Camera unavailable ({code}). Allow camera access, or import an image instead.",
+  "@cameraUnavailable": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "noCamera": "No camera found on this device.",
+  "captureFailed": "Capture failed ({code}).",
+  "@captureFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "flashUnavailable": "Flash unavailable ({code}).",
+  "@flashUnavailable": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "flashOn": "Flash on",
+  "flashOff": "Flash off",
+  "reviewTitle": "Review receipt",
+  "editTitle": "Edit receipt",
+  "addTitle": "Add expense",
+  "fieldMerchant": "Merchant",
+  "fieldTotal": "Total",
+  "fieldDate": "Date & time",
+  "fieldCategory": "Category",
+  "fieldReceiptNo": "Receipt number (optional)",
+  "items": "Items",
+  "removeItem": "Remove item",
+  "save": "Save",
+  "enterMerchant": "Enter the merchant name",
+  "enterTotal": "Enter the total amount",
+  "notDetected": "Not detected, please fill in",
+  "savedItem": "Saved {name}",
+  "@savedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Could not save: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "catFood": "Food",
+  "catStudy": "Study",
+  "catTravel": "Travel",
+  "catGear": "Gear",
+  "catEntertainment": "Entertainment",
+  "settingsTitle": "Settings",
+  "language": "Language",
+  "monthlyBudget": "Monthly budget",
+  "budgetNotSet": "Not set",
+  "budgetDialogTitle": "Monthly budget (VND)",
+  "budgetClear": "Remove budget",
+  "cancel": "Cancel",
+  "demoSection": "Demo",
+  "aboutSection": "About",
+  "aboutBody": "Receipts are read on your device: ML Kit on mobile, Tesseract.js in the browser. Nothing is uploaded.",
+  "billsTitle": "Daily bills",
+  "noBills": "No bills on this day.",
+  "billsCount": "{count} bills · {amount}",
+  "@billsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "dragHint": "Drag the top bill away to see the next",
+  "previousDay": "Previous day",
+  "nextDay": "Next day",
+  "viewDesktop": "Desktop",
+  "viewPhone": "Phone",
+  "switchToPhone": "Switch to phone view",
+  "switchToDesktop": "Switch to desktop view",
+  "switchLanguage": "Switch language"
+}

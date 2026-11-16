@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 class EditableField extends StatelessWidget {
   const EditableField({
@@ -10,6 +10,9 @@ class EditableField extends StatelessWidget {
     this.keyboardType,
     this.inputFormatters,
     this.suffixText,
+    this.helperText,
+    this.textStyle,
+    this.autovalidateMode,
   });
 
   final TextEditingController controller;
@@ -19,16 +22,24 @@ class EditableField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final String? suffixText;
 
+  /// Hint under the field, e.g. "Not detected, please fill in".
+  final String? helperText;
+  final TextStyle? textStyle;
+  final AutovalidateMode? autovalidateMode;
+
   @override
   Widget build(BuildContext context) => TextFormField(
     controller: controller,
     validator: validator,
     keyboardType: keyboardType,
     inputFormatters: inputFormatters,
+    style: textStyle,
+    autovalidateMode: autovalidateMode,
     decoration: InputDecoration(
       labelText: label,
       suffixText: suffixText,
-      border: const OutlineInputBorder(),
+      helperText: helperText,
+      helperStyle: const TextStyle(color: Color(0xFFB26A00)),
     ),
   );
 }

@@ -3,6 +3,10 @@ import 'package:intl/intl.dart';
 class CurrencyFormatter {
   CurrencyFormatter._();
 
+  /// Longest amount the UI accepts (99,999,999,999 VND), so a slip of the
+  /// finger cannot produce a figure that breaks the layout.
+  static const int maxDigits = 11;
+
   static final NumberFormat _format = NumberFormat.decimalPattern('en_US');
 
   /// 150000 -> "150,000 VND"

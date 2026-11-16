@@ -1,44 +1,59 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../app_scope.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/category_style.dart';
+import '../../../core/utils/date_formatter.dart';
+import '../../../core/utils/date_labels.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/receipts_refresh_mixin.dart';
+import '../../../domain/models/category.dart';
 import '../../../domain/models/receipt.dart';
+import '../../../domain/models/receipt_filter.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../receipt_review/screens/review_screen.dart';
 import '../widgets/transaction_tile.dart';
 
+/// All receipts, newest first, grouped by day, with search and category filter.
 class TransactionListScreen extends StatefulWidget {
-  const TransactionListScreen({super.key});
+  const TransactionListScreen({super.key, this.autofocusSearch = false});
+
+  final bool autofocusSearch;
 
   @override
   State<TransactionListScreen> createState() => _TransactionListScreenState();
 }
 
-class _TransactionListScreenState extends State<TransactionListScreen> {
+class _TransactionListScreenState extends State<TransactionListScreen>
+    with ReceiptsRefreshMixin {
   static const int _pageSize = 50;
+  static const Duration _searchDebounce = Duration(milliseconds: 250);
 
   final List<Receipt> _receipts = [];
   final ScrollController _scroll = ScrollController();
-  StreamSubscription<void>? _sub;
+  final TextEditingController _search = TextEditingController();
+  Timer? _debounce;
+  Category? _category;
   bool _loading = true;
   bool _hasMore = true;
   Object? _error;
 
+  ReceiptFilter get _filter =>
+      ReceiptFilter(query: _search.text, category: _category);
+
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_sub != null) return;
-    final repo = AppScope.of(context).receiptRepository;
-    _sub = repo.changes.listen((_) => _reload());
+  void initState() {
+    super.initState();
     _scroll.addListener(_onScroll);
-    _reload();
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
+    _debounce?.cancel();
     _scroll.dispose();
+    _search.dispose();
     super.dispose();
   }
 
@@ -48,11 +63,27 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
   }
 
-  Future<void> _reload() async {
+  void _onSearchChanged(String _) {
+    _debounce?.cancel();
+    _debounce = Timer(_searchDebounce, reload);
+  }
+
+  void _selectCategory(Category? category) {
+    setState(() => _category = category);
+    reload();
+  }
+
+  @override
+  Future<void> reload() async {
+    final filter = _filter;
     try {
       final page = await AppScope.of(context).receiptRepository
-          .getAll(limit: _pageSize);
-      if (!mounted) return;
+          .search(filter, limit: _pageSize);
+      if (!mounted ||
+          filter.query != _filter.query ||
+          filter.category != _filter.category) {
+        return; // a newer search superseded this one
+      }
       setState(() {
         _receipts
           ..clear()
@@ -73,10 +104,15 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   Future<void> _loadMore() async {
     setState(() => _loading = true);
+    final filter = _filter;
     try {
       final page = await AppScope.of(context).receiptRepository
-          .getAll(limit: _pageSize, offset: _receipts.length);
-      if (!mounted) return;
+          .search(filter, limit: _pageSize, offset: _receipts.length);
+      if (!mounted ||
+          filter.query != _filter.query ||
+          filter.category != _filter.category) {
+        return;
+      }
       setState(() {
         _receipts.addAll(page);
         _hasMore = page.length == _pageSize;
@@ -92,115 +128,229 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
   }
 
-  Future<void> _loadDemoData() async {
+  /// Deletes right away and offers Undo; the thumbnail file is only removed
+  /// once the snackbar closes without Undo, so Undo can restore everything.
+  Future<void> _delete(Receipt r) async {
+    final deps = AppScope.of(context);
+    final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    try {
-      final n = await AppScope.of(context).seedDemoData();
-      messenger.showSnackBar(
-        SnackBar(content: Text('Loaded $n demo receipts.')),
-      );
-    } on Exception catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Could not load demo data: $e')),
-      );
+    setState(() => _receipts.removeWhere((x) => x.id == r.id));
+    await deps.receiptRepository.delete(r.id);
+    messenger.clearSnackBars();
+    final reason = await messenger
+        .showSnackBar(
+          SnackBar(
+            content: Text(l10n.deletedItem(r.merchantName)),
+            action: SnackBarAction(
+              label: l10n.undo,
+              textColor: AppColors.lime,
+              onPressed: () => deps.receiptRepository.save(r),
+            ),
+          ),
+        )
+        .closed;
+    if (reason != SnackBarClosedReason.action) {
+      await deps.imageStorage.delete(r.thumbnailPath);
     }
   }
 
-  Future<bool> _confirmDelete(Receipt r) async {
-    final deps = AppScope.of(context);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete receipt?'),
-        content: Text('${r.merchantName} will be removed permanently.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.transactionsTitle)),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: TextField(
+                  controller: _search,
+                  autofocus: widget.autofocusSearch,
+                  onChanged: _onSearchChanged,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: l10n.searchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _search.text.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              _search.clear();
+                              setState(() {});
+                              reload();
+                            },
+                          ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  ),
+                ),
+              ),
+              _CategoryChips(selected: _category, onSelected: _selectCategory),
+              const SizedBox(height: 8),
+              Expanded(child: _body(l10n)),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
+        ),
       ),
     );
-    if (ok != true) return false;
-    await deps.receiptRepository.delete(r.id);
-    await deps.imageStorage.delete(r.thumbnailPath);
-    return true;
   }
 
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Transactions'),
-      actions: [
-        IconButton(
-          tooltip: 'Load demo data',
-          icon: const Icon(Icons.auto_awesome_outlined),
-          onPressed: _loadDemoData,
-        ),
-      ],
-    ),
-    body: _body(),
-  );
-
-  Widget _body() {
+  Widget _body(AppLocalizations l10n) {
     if (_loading && _receipts.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_error != null && _receipts.isEmpty) {
       return EmptyState(
         icon: Icons.error_outline,
-        message: 'Could not load transactions: $_error',
+        message: l10n.loadFailed('$_error'),
       );
     }
     if (_receipts.isEmpty) {
       return EmptyState(
-        icon: Icons.receipt_long_outlined,
-        message: 'No receipts yet. Tap Scan to add one.',
-        action: FilledButton.tonalIcon(
-          onPressed: _loadDemoData,
-          icon: const Icon(Icons.auto_awesome_outlined),
-          label: const Text('Load demo data'),
-        ),
+        icon: _filter.isEmpty ? Icons.receipt_long_outlined : Icons.search_off,
+        message: _filter.isEmpty ? l10n.noReceipts : l10n.noResults,
       );
     }
-    final list = ListView.builder(
+    final groups = _groupByDay(_receipts);
+    return ListView.builder(
       controller: _scroll,
-      padding: const EdgeInsets.only(bottom: 96),
-      itemCount: _receipts.length,
-      itemBuilder: (context, i) {
-        final r = _receipts[i];
-        return Dismissible(
-          key: ValueKey(r.id),
-          direction: DismissDirection.endToStart,
-          confirmDismiss: (_) => _confirmDelete(r),
-          onDismissed: (_) =>
-              setState(() => _receipts.removeWhere((x) => x.id == r.id)),
-          background: Container(
-            color: Theme.of(context).colorScheme.error,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            child: const Icon(Icons.delete, color: Colors.white),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+      itemCount: groups.length,
+      itemBuilder: (context, i) => _DayGroup(
+        day: groups[i].$1,
+        receipts: groups[i].$2,
+        onDelete: _delete,
+        onOpen: (r) => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ReviewScreen.edit(receipt: r),
           ),
-          child: TransactionTile(
-            receipt: r,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ReviewScreen.edit(receipt: r),
+        ),
+      ),
+    );
+  }
+
+  /// Receipts arrive newest first, so equal days are adjacent.
+  List<(DateTime, List<Receipt>)> _groupByDay(List<Receipt> receipts) {
+    final groups = <(DateTime, List<Receipt>)>[];
+    for (final r in receipts) {
+      final day = DateFormatter.startOfDay(r.dateTime);
+      if (groups.isNotEmpty && groups.last.$1 == day) {
+        groups.last.$2.add(r);
+      } else {
+        groups.add((day, [r]));
+      }
+    }
+    return groups;
+  }
+}
+
+class _CategoryChips extends StatelessWidget {
+  const _CategoryChips({required this.selected, required this.onSelected});
+
+  final Category? selected;
+  final ValueChanged<Category?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    Widget chip(String label, bool isSelected, VoidCallback onTap) => Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (_) => onTap(),
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : AppColors.ink,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          chip(l10n.filterAll, selected == null, () => onSelected(null)),
+          for (final c in Category.values)
+            chip(
+              c.localizedLabel(l10n),
+              selected == c,
+              () => onSelected(selected == c ? null : c),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DayGroup extends StatelessWidget {
+  const _DayGroup({
+    required this.day,
+    required this.receipts,
+    required this.onDelete,
+    required this.onOpen,
+  });
+
+  final DateTime day;
+  final List<Receipt> receipts;
+  final ValueChanged<Receipt> onDelete;
+  final ValueChanged<Receipt> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toString();
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(
+              relativeDayLabel(day, l10n, locale),
+              style: text.labelLarge?.copyWith(
+                color: AppColors.muted,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-        );
-      },
-    );
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 800),
-        child: list,
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var i = 0; i < receipts.length; i++) ...[
+                  if (i > 0) const Divider(indent: 72),
+                  Dismissible(
+                    key: ValueKey(receipts[i].id),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (_) => onDelete(receipts[i]),
+                    background: Container(
+                      color: AppColors.danger,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.white,
+                      ),
+                    ),
+                    child: TransactionTile(
+                      receipt: receipts[i],
+                      onTap: () => onOpen(receipts[i]),
+                      trailingCaption: DateFormatter.time(receipts[i].dateTime),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

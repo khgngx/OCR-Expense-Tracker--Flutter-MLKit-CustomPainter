@@ -17,6 +17,10 @@ class ParseReceiptTextUsecase {
   static final RegExp _amount = RegExp(
     r'(?<![\d.,])(?:[1-9]\d{0,2}(?:[.,]\d{3})+|[1-9]\d{3,})(?!\d)',
   );
+
+  /// Barcodes and phone numbers read as digits are not money.
+  static const double _maxPlausibleAmount = 1e11;
+
   static final RegExp _dateDmy = RegExp(
     r'(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4}|\d{2})(?:\D+(\d{1,2}):(\d{2}))?',
   );
@@ -248,6 +252,7 @@ class ParseReceiptTextUsecase {
         .allMatches(line)
         .map((m) => CurrencyFormatter.parse(m.group(0)!))
         .whereType<double>()
+        .where((a) => a < _maxPlausibleAmount)
         .toList();
   }
 

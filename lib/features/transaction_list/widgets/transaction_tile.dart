@@ -1,38 +1,82 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/category_style.dart';
 import '../../../core/utils/currency_formatter.dart';
-import '../../../core/utils/date_formatter.dart';
 import '../../../domain/models/receipt.dart';
+import '../../../l10n/app_localizations.dart';
 
 class TransactionTile extends StatelessWidget {
   const TransactionTile({
     super.key,
     required this.receipt,
     required this.onTap,
+    required this.trailingCaption,
   });
 
   final Receipt receipt;
   final VoidCallback onTap;
 
+  /// Small text under the amount: a time inside day groups, a date elsewhere.
+  final String trailingCaption;
+
   @override
-  Widget build(BuildContext context) => ListTile(
-    onTap: onTap,
-    leading: CircleAvatar(
-      backgroundColor: AppColors.of(receipt.category).withValues(alpha: 0.15),
-      child: Icon(Icons.receipt_long, color: AppColors.of(receipt.category)),
-    ),
-    title: Text(
-      receipt.merchantName,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    ),
-    subtitle: Text(
-      '${receipt.category.label} · ${DateFormatter.dateTime(receipt.dateTime)}',
-    ),
-    trailing: Text(
-      CurrencyFormatter.format(receipt.total),
-      style: const TextStyle(fontWeight: FontWeight.w600),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    final category = receipt.category;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: category.color.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(category.icon, color: AppColors.forest, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    receipt.merchantName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    category.localizedLabel(l10n),
+                    style: text.bodySmall?.copyWith(color: AppColors.muted),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '- ${CurrencyFormatter.format(receipt.total)}',
+                  style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  trailingCaption,
+                  style: text.bodySmall?.copyWith(color: AppColors.muted),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

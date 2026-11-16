@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CropOverlayPainter extends CustomPainter {
   const CropOverlayPainter({required this.rect, required this.color});

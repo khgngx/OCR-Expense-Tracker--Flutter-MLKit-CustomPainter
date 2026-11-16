@@ -6,6 +6,8 @@ import 'package:ocr_expense_tracker/domain/models/category.dart';
 import 'package:ocr_expense_tracker/domain/models/receipt.dart';
 import 'package:ocr_expense_tracker/domain/models/receipt_line_item.dart';
 import 'package:ocr_expense_tracker/domain/usecases/get_daily_summary_usecase.dart';
+import 'package:ocr_expense_tracker/domain/usecases/get_month_summary_usecase.dart';
+import 'package:ocr_expense_tracker/domain/usecases/get_monthly_trend_usecase.dart';
 import 'package:ocr_expense_tracker/domain/usecases/get_weekly_spending_usecase.dart';
 import 'package:ocr_expense_tracker/domain/usecases/save_receipt_usecase.dart';
 import 'package:ocr_expense_tracker/domain/usecases/seed_demo_data_usecase.dart';
@@ -117,14 +119,24 @@ void main() {
       final seed = SeedDemoDataUsecase(repo, now: () => now);
       await seed();
       await seed();
-      expect((await repo.getAll(limit: 100)).length, SeedDemoDataUsecase.count);
+      expect((await repo.getAll(limit: 500)).length, SeedDemoDataUsecase.count);
       final week = await GetWeeklySpendingUsecase(repo)(now);
       expect(week.where((d) => d.total > 0).length, greaterThanOrEqualTo(5));
       final month = await repo.getBetween(
         DateTime(2026, 11),
         DateTime(2026, 12),
       );
-      expect(month, isNotEmpty);
+      expect(
+        month.length,
+        21,
+        reason: 'older receipts must stay out of this month',
+      );
+      // Last month has a comparable volume, so the home card shows a plausible change.
+      final summary = await GetMonthSummaryUsecase(repo)(now);
+      expect(summary.changeVsPrevious, isNotNull);
+      expect(summary.changeVsPrevious!.abs(), lessThan(1.5));
+      final trend = await GetMonthlyTrendUsecase(repo)(now);
+      expect(trend.where((m) => m.total > 0).length, 6);
     },
   );
 }

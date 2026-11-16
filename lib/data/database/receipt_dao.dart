@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../domain/models/category.dart';
 import '../../domain/models/receipt.dart';
+import '../../domain/models/receipt_filter.dart';
 import '../../domain/models/receipt_line_item.dart';
 import 'app_database.dart';
 
@@ -35,6 +36,47 @@ class ReceiptDao {
   Future<List<Receipt>> getAll({int limit = 50, int offset = 0}) async {
     final rows = await _db.query(
       _table,
+      orderBy: 'date_time DESC',
+      limit: limit,
+      offset: offset,
+    );
+    return rows.map(_fromRow).toList();
+  }
+
+  /// Filtered, newest first. Values are bound as parameters; `%`, `_` and `\`
+  /// in the search text are escaped so they match literally.
+  Future<List<Receipt>> search(
+    ReceiptFilter filter, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final where = <String>[];
+    final args = <Object?>[];
+    final query = filter.query?.trim() ?? '';
+    if (query.isNotEmpty) {
+      final escaped = query
+          .replaceAll(r'\', r'\\')
+          .replaceAll('%', r'\%')
+          .replaceAll('_', r'\_');
+      where.add(r"merchant_name LIKE ? ESCAPE '\'");
+      args.add('%$escaped%');
+    }
+    if (filter.category != null) {
+      where.add('category = ?');
+      args.add(filter.category!.name);
+    }
+    if (filter.from != null) {
+      where.add('date_time >= ?');
+      args.add(filter.from!.millisecondsSinceEpoch);
+    }
+    if (filter.to != null) {
+      where.add('date_time < ?');
+      args.add(filter.to!.millisecondsSinceEpoch);
+    }
+    final rows = await _db.query(
+      _table,
+      where: where.isEmpty ? null : where.join(' AND '),
+      whereArgs: args.isEmpty ? null : args,
       orderBy: 'date_time DESC',
       limit: limit,
       offset: offset,

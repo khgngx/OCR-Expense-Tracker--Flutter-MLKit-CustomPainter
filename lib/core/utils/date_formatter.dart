@@ -3,13 +3,30 @@ import 'package:intl/intl.dart';
 class DateFormatter {
   DateFormatter._();
 
-  static final DateFormat _date = DateFormat('dd/MM/yyyy');
-  static final DateFormat _dateTime = DateFormat('dd/MM/yyyy HH:mm');
-  static final DateFormat _weekday = DateFormat('EEE');
+  /// dd/MM/yyyy, the same in both supported languages.
+  static String date(DateTime d) => DateFormat('dd/MM/yyyy').format(d);
 
-  static String date(DateTime d) => _date.format(d);
-  static String dateTime(DateTime d) => _dateTime.format(d);
-  static String weekday(DateTime d) => _weekday.format(d);
+  static String dateTime(DateTime d) =>
+      DateFormat('dd/MM/yyyy HH:mm').format(d);
+
+  static String time(DateTime d) => DateFormat('HH:mm').format(d);
+
+  /// Short weekday ("Mon" / "T2"), localized.
+  static String weekday(DateTime d, String locale) =>
+      DateFormat('EEE', locale).format(d);
+
+  /// "Nov 2026" / "thg 11 2026".
+  static String monthYear(DateTime d, String locale) =>
+      DateFormat('MMM yyyy', locale).format(d);
+
+  static String monthShort(DateTime d, String locale) =>
+      DateFormat('MMM', locale).format(d);
+
+  /// "Mon, 16 Nov" for list section headers.
+  static String dayHeader(DateTime d, String locale) =>
+      DateFormat('EEE, d MMM', locale).format(d);
 
   static DateTime startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  static DateTime startOfMonth(DateTime d) => DateTime(d.year, d.month);
 }

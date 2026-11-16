@@ -77,6 +77,12 @@ Item A 20.000
       expect(parser('NHÀ SÁCH FAHASA\nTổng 10.000').category, Category.study);
     });
 
+    test('ignores barcode-length digit runs as money', () {
+      final r = parser('Shop\nBarcode 8934563138165123456\nTổng cộng 45.000');
+      expect(r.total, 45000);
+      expect(r.lineItems, isEmpty);
+    });
+
     test('rejects impossible dates', () {
       expect(parser('Shop\n45/13/2025').dateTime, isNull);
     });
