@@ -45,3 +45,45 @@ class GetMonthSummaryUsecase {
     );
   }
 }
+
+class MerchantTotal {
+  const MerchantTotal({
+    required this.name,
+    required this.category,
+    required this.count,
+    required this.total,
+  });
+
+  final String name;
+
+  /// Category of the merchant's most recent receipt.
+  final Category category;
+  final int count;
+  final double total;
+}
+
+/// Receipts grouped by merchant (case-insensitive, trimmed), biggest spender
+/// first. Ties keep a stable order by name.
+List<MerchantTotal> topMerchants(Iterable<Receipt> receipts, {int limit = 8}) {
+  final groups = <String, List<Receipt>>{};
+  for (final r in receipts) {
+    groups.putIfAbsent(r.merchantName.trim().toLowerCase(), () => []).add(r);
+  }
+  MerchantTotal summarize(List<Receipt> list) {
+    // The newest receipt decides how the merchant is spelled and categorized.
+    final sorted = [...list]..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    return MerchantTotal(
+      name: sorted.first.merchantName.trim(),
+      category: sorted.first.category,
+      count: sorted.length,
+      total: sorted.fold<double>(0, (sum, r) => sum + r.total),
+    );
+  }
+
+  final result = groups.values.map(summarize).toList()
+    ..sort((a, b) {
+      final byTotal = b.total.compareTo(a.total);
+      return byTotal != 0 ? byTotal : a.name.compareTo(b.name);
+    });
+  return result.take(limit).toList();
+}

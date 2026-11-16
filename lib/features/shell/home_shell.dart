@@ -24,32 +24,25 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  static const _pages = <Widget>[
-    HomeScreen(),
-    AnalyticsScreen(),
-    DailyBillStackScreen(),
-    SettingsScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final items = [
       NavItem(Icons.home_outlined, Icons.home_rounded, l10n.navHome),
-      NavItem(
-        Icons.bar_chart_outlined,
-        Icons.bar_chart_rounded,
-        l10n.navAnalytics,
-      ),
-      NavItem(Icons.layers_outlined, Icons.layers_rounded, l10n.navBills),
-      NavItem(
-        Icons.settings_outlined,
-        Icons.settings_rounded,
-        l10n.navSettings,
-      ),
+      NavItem(Icons.analytics_outlined, Icons.analytics, l10n.navAnalytics),
+      NavItem(Icons.receipt_long_outlined, Icons.receipt_long, l10n.navBills),
+      NavItem(Icons.person_outline, Icons.person, l10n.navProfile),
     ];
     final width = MediaQuery.sizeOf(context).width;
-    final content = IndexedStack(index: _index, children: _pages);
+    final content = IndexedStack(
+      index: _index,
+      children: [
+        const HomeScreen(),
+        AnalyticsScreen(onBack: () => setState(() => _index = 0)),
+        const DailyBillStackScreen(),
+        const SettingsScreen(),
+      ],
+    );
 
     if (width >= Breakpoints.desktop) {
       final extended = width >= Breakpoints.extendedRail;

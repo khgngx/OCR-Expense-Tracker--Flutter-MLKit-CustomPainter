@@ -3,19 +3,19 @@ import 'package:material_ui/material_ui.dart';
 import '../../../app_scope.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/date_formatter.dart';
-import '../../../core/utils/date_labels.dart';
 import '../../../core/widgets/empty_state.dart';
-import '../../../core/widgets/language_toggle.dart';
 import '../../../core/widgets/receipts_refresh_mixin.dart';
+import '../../../core/widgets/soft_card.dart';
 import '../../../domain/models/receipt.dart';
 import '../../../domain/usecases/get_month_summary_usecase.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../alerts/screens/alerts_screen.dart';
 import '../../camera_scan/flow/import_receipt_flow.dart';
 import '../../camera_scan/screens/camera_scan_screen.dart';
 import '../../receipt_review/screens/review_screen.dart';
-import '../../settings/widgets/budget_dialog.dart';
 import '../../transaction_list/screens/transaction_list_screen.dart';
 import '../../transaction_list/widgets/transaction_tile.dart';
+import '../widgets/more_sheet.dart';
 import '../widgets/quick_actions.dart';
 import '../widgets/summary_card.dart';
 
@@ -27,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with ReceiptsRefreshMixin {
-  static const int _recentCount = 5;
+  static const int _recentCount = 4;
 
   MonthSummary? _summary;
   List<Receipt> _recent = const [];
@@ -62,28 +62,13 @@ class _HomeScreenState extends State<HomeScreen> with ReceiptsRefreshMixin {
     return hour < 18 ? l10n.greetingAfternoon : l10n.greetingEvening;
   }
 
-  void _openAll({bool focusSearch = false}) => Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => TransactionListScreen(autofocusSearch: focusSearch),
-    ),
-  );
-
-  Future<void> _loadDemo() async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final n = await AppScope.of(context).seedDemoData();
-      messenger.showSnackBar(SnackBar(content: Text(l10n.demoLoaded(n))));
-    } on Exception catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.demoFailed('$e'))));
-    }
-  }
+  void _push(Widget page) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settings = AppScope.of(context).settings;
-    final text = Theme.of(context).textTheme;
     final summary = _summary;
 
     if (_error != null && summary == null) {
@@ -93,47 +78,16 @@ class _HomeScreenState extends State<HomeScreen> with ReceiptsRefreshMixin {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final header = Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _greeting(l10n),
-                style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              ),
-              Text(
-                l10n.greetingSub,
-                style: text.bodySmall?.copyWith(color: AppColors.muted),
-              ),
-            ],
-          ),
-        ),
-        const LanguageToggle(),
-        const SizedBox(width: 8),
-        IconButton.filled(
-          tooltip: l10n.searchHint,
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.surface,
-            foregroundColor: AppColors.ink,
-            side: const BorderSide(color: AppColors.line),
-          ),
-          onPressed: () => _openAll(focusSearch: true),
-          icon: const Icon(Icons.search),
-        ),
-      ],
+    final header = _Header(
+      greeting: _greeting(l10n),
+      onSearch: () => _push(const TransactionListScreen(autofocusSearch: true)),
+      onAlerts: () => _push(const AlertsScreen()),
     );
-
     final summaryCard = ListenableBuilder(
       listenable: settings,
-      builder: (context, _) => SummaryCard(
-        summary: summary,
-        budget: settings.monthlyBudget,
-        onSetBudget: () => showBudgetDialog(context),
-      ),
+      builder: (context, _) =>
+          SummaryCard(summary: summary, budget: settings.monthlyBudget),
     );
-
     final actions = QuickActions(
       actions: [
         QuickAction(
@@ -142,31 +96,26 @@ class _HomeScreenState extends State<HomeScreen> with ReceiptsRefreshMixin {
           onTap: () => openScanScreen(context),
         ),
         QuickAction(
-          icon: Icons.photo_library_outlined,
+          icon: Icons.add_photo_alternate_outlined,
           label: l10n.quickImport,
           onTap: () => importReceiptFlow(context),
         ),
         QuickAction(
-          icon: Icons.edit_note_outlined,
+          icon: Icons.add,
           label: l10n.quickAdd,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => ReviewScreen.manual()),
-          ),
+          onTap: () => _push(ReviewScreen.manual()),
         ),
         QuickAction(
-          icon: Icons.auto_awesome_outlined,
-          label: l10n.quickDemo,
-          onTap: _loadDemo,
+          icon: Icons.more_horiz,
+          label: l10n.quickMore,
+          onTap: () => showMoreSheet(context),
         ),
       ],
     );
-
     final recent = _RecentSection(
       receipts: _recent,
-      onSeeAll: _openAll,
-      onOpen: (r) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => ReviewScreen.edit(receipt: r)),
-      ),
+      onSeeAll: () => _push(const TransactionListScreen()),
+      onOpen: (r) => _push(ReviewScreen.edit(receipt: r)),
     );
 
     return SafeArea(
@@ -179,10 +128,10 @@ class _HomeScreenState extends State<HomeScreen> with ReceiptsRefreshMixin {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1100),
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
                 children: [
                   header,
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 18),
                   if (wide)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,20 +140,20 @@ class _HomeScreenState extends State<HomeScreen> with ReceiptsRefreshMixin {
                           child: Column(
                             children: [
                               summaryCard,
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 22),
                               actions,
                             ],
                           ),
                         ),
-                        const SizedBox(width: 24),
+                        const SizedBox(width: 28),
                         Expanded(child: recent),
                       ],
                     )
                   else ...[
                     summaryCard,
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
                     actions,
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 26),
                     recent,
                   ],
                 ],
@@ -213,6 +162,79 @@ class _HomeScreenState extends State<HomeScreen> with ReceiptsRefreshMixin {
           );
         },
       ),
+    );
+  }
+}
+
+/// Avatar slot, greeting, and the search + bell pill on the right.
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.greeting,
+    required this.onSearch,
+    required this.onAlerts,
+  });
+
+  final String greeting;
+  final VoidCallback onSearch;
+  final VoidCallback onAlerts;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            color: AppColors.forest,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.eco, color: AppColors.lime, size: 22),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                greeting,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              Text(
+                l10n.greetingSub,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: text.labelSmall?.copyWith(color: AppColors.muted),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.tile,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: l10n.searchHint,
+                onPressed: onSearch,
+                icon: const Icon(Icons.search, size: 22),
+              ),
+              IconButton(
+                tooltip: l10n.alertsTitle,
+                onPressed: onAlerts,
+                icon: const Icon(Icons.notifications_none_rounded, size: 22),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -233,6 +255,12 @@ class _RecentSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toString();
     final text = Theme.of(context).textTheme;
+    final today = DateFormatter.startOfDay(DateTime.now());
+
+    String caption(Receipt r) => DateFormatter.startOfDay(r.dateTime) == today
+        ? l10n.today
+        : DateFormatter.mediumDate(r.dateTime, locale);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,15 +272,26 @@ class _RecentSection extends StatelessWidget {
                 style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
-            TextButton(
-              onPressed: onSeeAll,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l10n.seeAll),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.arrow_forward, size: 16),
-                ],
+            InkWell(
+              onTap: onSeeAll,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.seeAll,
+                      style: text.labelMedium?.copyWith(color: AppColors.muted),
+                    ),
+                    const SizedBox(width: 3),
+                    const Icon(
+                      Icons.arrow_forward,
+                      size: 14,
+                      color: AppColors.muted,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -267,15 +306,15 @@ class _RecentSection extends StatelessWidget {
             ),
           )
         else
-          Card(
+          SoftCard(
             child: Column(
               children: [
                 for (var i = 0; i < receipts.length; i++) ...[
-                  if (i > 0) const Divider(indent: 72),
+                  if (i > 0) const Divider(indent: 68, endIndent: 14),
                   TransactionTile(
                     receipt: receipts[i],
                     onTap: () => onOpen(receipts[i]),
-                    trailingCaption: _caption(receipts[i], l10n, locale),
+                    trailingCaption: caption(receipts[i]),
                   ),
                 ],
               ],
@@ -283,16 +322,5 @@ class _RecentSection extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  String _caption(Receipt r, AppLocalizations l10n, String locale) {
-    final label = relativeDayLabel(r.dateTime, l10n, locale);
-    final sameYear = r.dateTime.year == DateTime.now().year;
-    // Older than yesterday: show the real date instead of "Mon, 3 Nov".
-    return label == l10n.today || label == l10n.yesterday
-        ? label
-        : (sameYear
-              ? DateFormatter.dayHeader(r.dateTime, locale)
-              : DateFormatter.date(r.dateTime));
   }
 }

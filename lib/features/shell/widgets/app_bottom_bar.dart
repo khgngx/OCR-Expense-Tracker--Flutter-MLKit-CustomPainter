@@ -41,7 +41,7 @@ class AppBottomBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -53,7 +53,7 @@ class AppBottomBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 68,
+          height: 66,
           child: Row(
             children: [
               for (var i = 0; i < half; i++) item(i),
@@ -73,12 +73,12 @@ class AppBottomBar extends StatelessWidget {
                           customBorder: const CircleBorder(),
                           onTap: onCenterPressed,
                           child: const SizedBox(
-                            width: 56,
-                            height: 56,
+                            width: 52,
+                            height: 52,
                             child: Icon(
                               Icons.document_scanner_outlined,
                               color: Colors.white,
-                              size: 26,
+                              size: 24,
                             ),
                           ),
                         ),

@@ -49,13 +49,40 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.only(bottom: 16),
                     child: Text(
-                      l10n.settingsTitle,
+                      l10n.profileTitle,
                       style: text.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: const BoxDecoration(
+                          color: AppColors.forest,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.eco,
+                          color: AppColors.lime,
+                          size: 36,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        l10n.appTitle,
+                        style: text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 section(

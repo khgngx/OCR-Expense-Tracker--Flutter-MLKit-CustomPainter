@@ -9,8 +9,8 @@ class BarDatum {
   final double value;
 }
 
-/// Vertical bar chart with light grid lines and labels under each bar. One bar
-/// can be highlighted ([selectedIndex]) and carry a tooltip bubble.
+/// Vertical bar chart. Optional extras: grid lines, value labels down the right
+/// edge ([axisLabels], top to bottom), and one highlighted bar with a tooltip.
 class BarChartPainter extends CustomPainter {
   const BarChartPainter({
     required this.bars,
@@ -22,6 +22,10 @@ class BarChartPainter extends CustomPainter {
     this.selectedColor,
     this.tooltipText,
     this.tooltipColor = const Color(0xFF14392C),
+    this.showGrid = true,
+    this.axisLabels = const [],
+    this.axisMax,
+    this.maxBarWidth = 36,
   });
 
   final List<BarDatum> bars;
@@ -37,10 +41,20 @@ class BarChartPainter extends CustomPainter {
   /// Text of the bubble above the selected bar; no bubble when null.
   final String? tooltipText;
   final Color tooltipColor;
+  final bool showGrid;
+
+  /// Labels of the right-hand value axis, top (max) to bottom (0). Their count
+  /// defines the number of grid rows.
+  final List<String> axisLabels;
+
+  /// Value that the top of the chart represents; defaults to the largest bar.
+  final double? axisMax;
+  final double maxBarWidth;
 
   static const double _labelHeight = 22;
   static const double _tooltipSpace = 36;
-  static const int _gridLines = 4;
+  static const double _axisWidth = 40;
+  static const int _defaultGridLines = 4;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -49,26 +63,43 @@ class BarChartPainter extends CustomPainter {
     }
     final top = tooltipText != null ? _tooltipSpace : 0.0;
     final chartHeight = size.height - _labelHeight - top;
-    if (chartHeight <= 0) {
+    final chartWidth = size.width - (axisLabels.isEmpty ? 0 : _axisWidth);
+    if (chartHeight <= 0 || chartWidth <= 0) {
       return;
     }
 
+    final rows = axisLabels.length > 1
+        ? axisLabels.length - 1
+        : _defaultGridLines;
     final grid = Paint()
       ..color = gridColor
       ..strokeWidth = 1;
-    for (var i = 0; i <= _gridLines; i++) {
-      final y = top + chartHeight * i / _gridLines;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+    for (var i = 0; i <= rows; i++) {
+      final y = top + chartHeight * i / rows;
+      if (showGrid) {
+        canvas.drawLine(Offset(0, y), Offset(chartWidth, y), grid);
+      }
+      if (i < axisLabels.length) {
+        final label = TextPainter(
+          text: TextSpan(text: axisLabels[i], style: labelStyle),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout(maxWidth: _axisWidth - 6);
+        label.paint(canvas, Offset(chartWidth + 8, y - label.height / 2));
+      }
     }
 
-    final maxValue = bars.map((b) => b.value).fold<double>(0, math.max);
-    final slot = size.width / bars.length;
-    final barWidth = math.min(slot * 0.5, 36.0);
+    final maxValue =
+        axisMax ?? bars.map((b) => b.value).fold<double>(0, math.max);
+    final slot = chartWidth / bars.length;
+    final barWidth = math.min(slot * 0.5, maxBarWidth);
 
     for (var i = 0; i < bars.length; i++) {
       final bar = bars[i];
       final x = slot * i + (slot - barWidth) / 2;
-      final fraction = maxValue <= 0 ? 0.0 : bar.value / maxValue;
+      final fraction = maxValue <= 0
+          ? 0.0
+          : (bar.value / maxValue).clamp(0.0, 1.0);
       final height = chartHeight * fraction * progress.clamp(0.0, 1.0);
       final selected = i == selectedIndex;
       final paint = Paint()
@@ -83,8 +114,8 @@ class BarChartPainter extends CustomPainter {
         canvas.drawRRect(
           RRect.fromRectAndCorners(
             rect,
-            topLeft: const Radius.circular(8),
-            topRight: const Radius.circular(8),
+            topLeft: const Radius.circular(6),
+            topRight: const Radius.circular(6),
           ),
           paint,
         );
@@ -100,12 +131,12 @@ class BarChartPainter extends CustomPainter {
       );
 
       if (selected && tooltipText != null) {
-        _paintTooltip(canvas, size, Offset(x + barWidth / 2, rect.top));
+        _paintTooltip(canvas, chartWidth, Offset(x + barWidth / 2, rect.top));
       }
     }
   }
 
-  void _paintTooltip(Canvas canvas, Size size, Offset anchor) {
+  void _paintTooltip(Canvas canvas, double width, Offset anchor) {
     final painter = TextPainter(
       text: TextSpan(
         text: tooltipText,
@@ -121,7 +152,7 @@ class BarChartPainter extends CustomPainter {
     final w = painter.width + padH * 2;
     final h = painter.height + padV * 2;
     final left = (anchor.dx - w / 2)
-        .clamp(0.0, math.max(0.0, size.width - w))
+        .clamp(0.0, math.max(0.0, width - w))
         .toDouble();
     final bubble = Rect.fromLTWH(left, anchor.dy - h - gap, w, h);
     final fill = Paint()..color = tooltipColor;
@@ -150,7 +181,23 @@ class BarChartPainter extends CustomPainter {
       old.selectedColor != selectedColor ||
       old.tooltipText != tooltipText ||
       old.tooltipColor != tooltipColor ||
+      old.showGrid != showGrid ||
+      old.axisMax != axisMax ||
+      old.maxBarWidth != maxBarWidth ||
+      !_sameLabels(old.axisLabels, axisLabels) ||
       !_sameBars(old.bars, bars);
+
+  static bool _sameLabels(List<String> a, List<String> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   static bool _sameBars(List<BarDatum> a, List<BarDatum> b) {
     if (a.length != b.length) {

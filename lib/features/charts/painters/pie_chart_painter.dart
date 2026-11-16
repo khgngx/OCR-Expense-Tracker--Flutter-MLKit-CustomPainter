@@ -16,12 +16,16 @@ class PieChartPainter extends CustomPainter {
     required this.emptyColor,
     this.progress = 1,
     this.holeFraction = 0.58,
+    this.roundedCaps = false,
   });
 
   final List<PieSlice> slices;
   final Color emptyColor;
   final double progress;
   final double holeFraction;
+
+  /// Round segment ends with a visible gap between them, like the reference.
+  final bool roundedCaps;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -33,7 +37,7 @@ class PieChartPainter extends CustomPainter {
     final ring = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.butt;
+      ..strokeCap = roundedCaps ? StrokeCap.round : StrokeCap.butt;
 
     final total = slices.fold<double>(0, (sum, s) => sum + s.value);
     if (total <= 0) {
@@ -41,7 +45,11 @@ class PieChartPainter extends CustomPainter {
       return;
     }
 
-    const gap = 0.02;
+    final midRadius = outer - stroke / 2;
+    // With round caps each end sticks out by half the stroke, so the arc is
+    // shortened by that much (plus a hairline gap) to keep neighbors apart.
+    final capPad = roundedCaps ? (stroke / 2) / midRadius : 0.0;
+    final gap = roundedCaps ? 0.05 : 0.02;
     var start = -math.pi / 2;
     final fullSweep = math.pi * 2 * progress.clamp(0.0, 1.0);
     var drawn = 0.0;
@@ -49,13 +57,12 @@ class PieChartPainter extends CustomPainter {
       final sweep = s.value / total * math.pi * 2;
       final visible = math.min(sweep, math.max(0.0, fullSweep - drawn));
       if (visible > 0) {
-        final padded = slices.length > 1
-            ? math.max(0.0, visible - gap)
-            : visible;
+        final pad = slices.length > 1 ? capPad + gap / 2 : 0.0;
+        final length = math.max(visible - 2 * pad, roundedCaps ? 0.001 : 0.0);
         canvas.drawArc(
           rect,
-          start + (visible - padded) / 2,
-          padded,
+          start + (visible - length) / 2,
+          length,
           false,
           ring..color = s.color,
         );
@@ -70,6 +77,7 @@ class PieChartPainter extends CustomPainter {
       old.progress != progress ||
       old.emptyColor != emptyColor ||
       old.holeFraction != holeFraction ||
+      old.roundedCaps != roundedCaps ||
       !_sameSlices(old.slices, slices);
 
   static bool _sameSlices(List<PieSlice> a, List<PieSlice> b) {

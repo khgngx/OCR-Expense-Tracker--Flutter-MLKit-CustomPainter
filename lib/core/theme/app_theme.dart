@@ -71,8 +71,10 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.forest,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(54),
-          shape: const StadiumBorder(),
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           textStyle: text.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
       ),

@@ -13,21 +13,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Expense Tracker';
 
   @override
-  String get onboardingTitle1 => 'Scan receipts\nin seconds';
-
-  @override
   String get onboardingBody1 =>
-      'Point your camera at a receipt and let OCR fill in the details.';
-
-  @override
-  String get onboardingTitle2 => 'Know where your\nmoney goes';
+      'Scan, save, and track every expense — all in one simple place.';
 
   @override
   String get onboardingBody2 =>
       'Smart categories and charts show your spending at a glance.';
-
-  @override
-  String get onboardingTitle3 => 'Stay under\nbudget';
 
   @override
   String get onboardingBody3 => 'Set a monthly budget and track it day by day.';
@@ -403,4 +394,110 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchLanguage => 'Switch language';
+
+  @override
+  String get onboardingTitle1a => 'Your Receipts';
+
+  @override
+  String get onboardingTitle1b => 'Made Simple';
+
+  @override
+  String get onboardingTitle2a => 'Know Where';
+
+  @override
+  String get onboardingTitle2b => 'Money Goes';
+
+  @override
+  String get onboardingTitle3a => 'Stay Within';
+
+  @override
+  String get onboardingTitle3b => 'Your Budget';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get totalSpentLabel => 'Total Spent';
+
+  @override
+  String get vsLastMonth => 'vs last month';
+
+  @override
+  String get hideAmount => 'Hide amount';
+
+  @override
+  String get showAmount => 'Show amount';
+
+  @override
+  String get quickMore => 'More';
+
+  @override
+  String get moreTitle => 'More';
+
+  @override
+  String get tabBudget => 'Budget';
+
+  @override
+  String get tabMerchants => 'Merchants';
+
+  @override
+  String get spendingTrend => 'Spending Trend';
+
+  @override
+  String get selectMonth => 'Select month';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get alertsTitle => 'Alerts';
+
+  @override
+  String get alertsEmpty => 'You\'re all caught up.';
+
+  @override
+  String alertBudgetUsed(int percent) {
+    return 'You\'ve used $percent% of your monthly budget';
+  }
+
+  @override
+  String get alertNoBudget => 'Set a monthly budget to get spending alerts';
+
+  @override
+  String alertTopCategory(String category) {
+    return '$category is your biggest expense this month';
+  }
+
+  @override
+  String get alertNoSpending => 'No spending recorded yet this month';
+
+  @override
+  String budgetTabSpent(String amount, String budget) {
+    return 'Spent $amount of $budget';
+  }
+
+  @override
+  String budgetTabPerDay(String amount, int days) {
+    return 'You can spend about $amount per day for the remaining $days days.';
+  }
+
+  @override
+  String get budgetTabOver => 'You are over budget this month.';
+
+  @override
+  String get budgetTabEdit => 'Edit budget';
+
+  @override
+  String get topMerchants => 'Top merchants';
+
+  @override
+  String receiptCount(int count) {
+    return '$count receipts';
+  }
+
+  @override
+  String get noMerchants => 'No merchants yet this month.';
 }

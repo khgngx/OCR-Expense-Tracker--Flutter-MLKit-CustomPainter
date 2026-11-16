@@ -26,6 +26,10 @@ class DateFormatter {
   static String dayHeader(DateTime d, String locale) =>
       DateFormat('EEE, d MMM', locale).format(d);
 
+  /// "Aug 18, 2026" / "18 thg 8, 2026".
+  static String mediumDate(DateTime d, String locale) =>
+      DateFormat.yMMMd(locale).format(d);
+
   static DateTime startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
   static DateTime startOfMonth(DateTime d) => DateTime(d.year, d.month);

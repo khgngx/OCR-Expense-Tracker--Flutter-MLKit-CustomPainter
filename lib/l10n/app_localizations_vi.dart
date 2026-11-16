@@ -13,21 +13,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appTitle => 'Quản lý chi tiêu';
 
   @override
-  String get onboardingTitle1 => 'Quét hóa đơn\ntrong vài giây';
-
-  @override
   String get onboardingBody1 =>
-      'Hướng camera vào hóa đơn, OCR sẽ tự điền thông tin.';
-
-  @override
-  String get onboardingTitle2 => 'Biết tiền\nđi đâu';
+      'Quét, lưu và theo dõi mọi khoản chi — tất cả trong một nơi đơn giản.';
 
   @override
   String get onboardingBody2 =>
       'Danh mục và biểu đồ giúp bạn nắm chi tiêu trong một cái nhìn.';
-
-  @override
-  String get onboardingTitle3 => 'Chi tiêu trong\nngân sách';
 
   @override
   String get onboardingBody3 => 'Đặt ngân sách tháng và theo dõi mỗi ngày.';
@@ -402,4 +393,110 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get switchLanguage => 'Đổi ngôn ngữ';
+
+  @override
+  String get onboardingTitle1a => 'Hóa đơn của bạn';
+
+  @override
+  String get onboardingTitle1b => 'Gọn gàng hơn';
+
+  @override
+  String get onboardingTitle2a => 'Biết tiền';
+
+  @override
+  String get onboardingTitle2b => 'đi đâu';
+
+  @override
+  String get onboardingTitle3a => 'Chi tiêu trong';
+
+  @override
+  String get onboardingTitle3b => 'ngân sách';
+
+  @override
+  String get navProfile => 'Hồ sơ';
+
+  @override
+  String get profileTitle => 'Hồ sơ';
+
+  @override
+  String get totalSpentLabel => 'Tổng chi';
+
+  @override
+  String get vsLastMonth => 'so với tháng trước';
+
+  @override
+  String get hideAmount => 'Ẩn số tiền';
+
+  @override
+  String get showAmount => 'Hiện số tiền';
+
+  @override
+  String get quickMore => 'Thêm';
+
+  @override
+  String get moreTitle => 'Thêm';
+
+  @override
+  String get tabBudget => 'Ngân sách';
+
+  @override
+  String get tabMerchants => 'Cửa hàng';
+
+  @override
+  String get spendingTrend => 'Xu hướng chi tiêu';
+
+  @override
+  String get selectMonth => 'Chọn tháng';
+
+  @override
+  String get back => 'Quay lại';
+
+  @override
+  String get alertsTitle => 'Thông báo';
+
+  @override
+  String get alertsEmpty => 'Bạn đã xem hết thông báo.';
+
+  @override
+  String alertBudgetUsed(int percent) {
+    return 'Bạn đã dùng $percent% ngân sách tháng';
+  }
+
+  @override
+  String get alertNoBudget => 'Đặt ngân sách tháng để nhận cảnh báo chi tiêu';
+
+  @override
+  String alertTopCategory(String category) {
+    return '$category là khoản chi lớn nhất tháng này';
+  }
+
+  @override
+  String get alertNoSpending => 'Tháng này chưa có chi tiêu';
+
+  @override
+  String budgetTabSpent(String amount, String budget) {
+    return 'Đã chi $amount trên $budget';
+  }
+
+  @override
+  String budgetTabPerDay(String amount, int days) {
+    return 'Bạn có thể chi khoảng $amount mỗi ngày trong $days ngày còn lại.';
+  }
+
+  @override
+  String get budgetTabOver => 'Bạn đã vượt ngân sách tháng này.';
+
+  @override
+  String get budgetTabEdit => 'Sửa ngân sách';
+
+  @override
+  String get topMerchants => 'Cửa hàng chi nhiều nhất';
+
+  @override
+  String receiptCount(int count) {
+    return '$count hóa đơn';
+  }
+
+  @override
+  String get noMerchants => 'Tháng này chưa có cửa hàng nào.';
 }

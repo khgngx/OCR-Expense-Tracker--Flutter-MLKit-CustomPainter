@@ -16,6 +16,22 @@ extension CategoryStyle on Category {
     Category.entertainment => Icons.movie_outlined,
   };
 
+  /// Solid tile behind the category icon in transaction rows (the reference
+  /// uses brand-colored tiles; ours are neutral category colors).
+  Color get tileColor => switch (this) {
+    Category.food => AppColors.forest,
+    Category.study => const Color(0xFF15191A),
+    Category.travel => const Color(0xFFF5C944),
+    Category.gear => const Color(0xFF4C9A6C),
+    Category.entertainment => const Color(0xFF15191A),
+  };
+
+  Color get tileIconColor => switch (this) {
+    Category.travel => const Color(0xFF2B2410),
+    Category.entertainment => const Color(0xFFE5484D),
+    _ => Colors.white,
+  };
+
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     Category.food => l10n.catFood,
     Category.study => l10n.catStudy,

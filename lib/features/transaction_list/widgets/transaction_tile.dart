@@ -17,7 +17,7 @@ class TransactionTile extends StatelessWidget {
   final Receipt receipt;
   final VoidCallback onTap;
 
-  /// Small text under the amount: a time inside day groups, a date elsewhere.
+  /// Small text under the amount: "Today", a date, or a time inside day groups.
   final String trailingCaption;
 
   @override
@@ -28,17 +28,21 @@ class TransactionTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: category.color.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(14),
+                color: category.tileColor,
+                borderRadius: BorderRadius.circular(13),
               ),
-              child: Icon(category.icon, color: AppColors.forest, size: 22),
+              child: Icon(
+                category.icon,
+                color: category.tileIconColor,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(

@@ -1,11 +1,8 @@
 {
   "@@locale": "en",
   "appTitle": "Expense Tracker",
-  "onboardingTitle1": "Scan receipts\nin seconds",
-  "onboardingBody1": "Point your camera at a receipt and let OCR fill in the details.",
-  "onboardingTitle2": "Know where your\nmoney goes",
+  "onboardingBody1": "Scan, save, and track every expense — all in one simple place.",
   "onboardingBody2": "Smart categories and charts show your spending at a glance.",
-  "onboardingTitle3": "Stay under\nbudget",
   "onboardingBody3": "Set a monthly budget and track it day by day.",
   "skip": "Skip",
   "next": "Next",
@@ -242,5 +239,78 @@
   "viewPhone": "Phone",
   "switchToPhone": "Switch to phone view",
   "switchToDesktop": "Switch to desktop view",
-  "switchLanguage": "Switch language"
+  "switchLanguage": "Switch language",
+  "onboardingTitle1a": "Your Receipts",
+  "onboardingTitle1b": "Made Simple",
+  "onboardingTitle2a": "Know Where",
+  "onboardingTitle2b": "Money Goes",
+  "onboardingTitle3a": "Stay Within",
+  "onboardingTitle3b": "Your Budget",
+  "navProfile": "Profile",
+  "profileTitle": "Profile",
+  "totalSpentLabel": "Total Spent",
+  "vsLastMonth": "vs last month",
+  "hideAmount": "Hide amount",
+  "showAmount": "Show amount",
+  "quickMore": "More",
+  "moreTitle": "More",
+  "tabBudget": "Budget",
+  "tabMerchants": "Merchants",
+  "spendingTrend": "Spending Trend",
+  "selectMonth": "Select month",
+  "back": "Back",
+  "alertsTitle": "Alerts",
+  "alertsEmpty": "You're all caught up.",
+  "alertBudgetUsed": "You've used {percent}% of your monthly budget",
+  "@alertBudgetUsed": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "alertNoBudget": "Set a monthly budget to get spending alerts",
+  "alertTopCategory": "{category} is your biggest expense this month",
+  "@alertTopCategory": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "alertNoSpending": "No spending recorded yet this month",
+  "budgetTabSpent": "Spent {amount} of {budget}",
+  "@budgetTabSpent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetTabPerDay": "You can spend about {amount} per day for the remaining {days} days.",
+  "@budgetTabPerDay": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetTabOver": "You are over budget this month.",
+  "budgetTabEdit": "Edit budget",
+  "topMerchants": "Top merchants",
+  "receiptCount": "{count} receipts",
+  "@receiptCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noMerchants": "No merchants yet this month."
 }

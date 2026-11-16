@@ -19,4 +19,21 @@ class CurrencyFormatter {
     final digits = input.replaceAll(RegExp(r'[^0-9]'), '');
     return digits.isEmpty ? null : double.parse(digits);
   }
+
+  /// Short form for chart axes: 1500 -> "1.5K", 2500000 -> "2.5M".
+  static String compact(double value) {
+    String trim(double v) =>
+        v == v.roundToDouble() ? v.round().toString() : v.toStringAsFixed(1);
+    final abs = value.abs();
+    if (abs >= 1e9) {
+      return '${trim(value / 1e9)}B';
+    }
+    if (abs >= 1e6) {
+      return '${trim(value / 1e6)}M';
+    }
+    if (abs >= 1e3) {
+      return '${trim(value / 1e3)}K';
+    }
+    return value.round().toString();
+  }
 }

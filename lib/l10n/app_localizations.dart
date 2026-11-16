@@ -104,35 +104,17 @@ abstract class AppLocalizations {
   /// **'Expense Tracker'**
   String get appTitle;
 
-  /// No description provided for @onboardingTitle1.
-  ///
-  /// In en, this message translates to:
-  /// **'Scan receipts\nin seconds'**
-  String get onboardingTitle1;
-
   /// No description provided for @onboardingBody1.
   ///
   /// In en, this message translates to:
-  /// **'Point your camera at a receipt and let OCR fill in the details.'**
+  /// **'Scan, save, and track every expense — all in one simple place.'**
   String get onboardingBody1;
-
-  /// No description provided for @onboardingTitle2.
-  ///
-  /// In en, this message translates to:
-  /// **'Know where your\nmoney goes'**
-  String get onboardingTitle2;
 
   /// No description provided for @onboardingBody2.
   ///
   /// In en, this message translates to:
   /// **'Smart categories and charts show your spending at a glance.'**
   String get onboardingBody2;
-
-  /// No description provided for @onboardingTitle3.
-  ///
-  /// In en, this message translates to:
-  /// **'Stay under\nbudget'**
-  String get onboardingTitle3;
 
   /// No description provided for @onboardingBody3.
   ///
@@ -805,6 +787,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch language'**
   String get switchLanguage;
+
+  /// No description provided for @onboardingTitle1a.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Receipts'**
+  String get onboardingTitle1a;
+
+  /// No description provided for @onboardingTitle1b.
+  ///
+  /// In en, this message translates to:
+  /// **'Made Simple'**
+  String get onboardingTitle1b;
+
+  /// No description provided for @onboardingTitle2a.
+  ///
+  /// In en, this message translates to:
+  /// **'Know Where'**
+  String get onboardingTitle2a;
+
+  /// No description provided for @onboardingTitle2b.
+  ///
+  /// In en, this message translates to:
+  /// **'Money Goes'**
+  String get onboardingTitle2b;
+
+  /// No description provided for @onboardingTitle3a.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay Within'**
+  String get onboardingTitle3a;
+
+  /// No description provided for @onboardingTitle3b.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Budget'**
+  String get onboardingTitle3b;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @totalSpentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Spent'**
+  String get totalSpentLabel;
+
+  /// No description provided for @vsLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'vs last month'**
+  String get vsLastMonth;
+
+  /// No description provided for @hideAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide amount'**
+  String get hideAmount;
+
+  /// No description provided for @showAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amount'**
+  String get showAmount;
+
+  /// No description provided for @quickMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get quickMore;
+
+  /// No description provided for @moreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get moreTitle;
+
+  /// No description provided for @tabBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get tabBudget;
+
+  /// No description provided for @tabMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchants'**
+  String get tabMerchants;
+
+  /// No description provided for @spendingTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending Trend'**
+  String get spendingTrend;
+
+  /// No description provided for @selectMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Select month'**
+  String get selectMonth;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @alertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get alertsTitle;
+
+  /// No description provided for @alertsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up.'**
+  String get alertsEmpty;
+
+  /// No description provided for @alertBudgetUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve used {percent}% of your monthly budget'**
+  String alertBudgetUsed(int percent);
+
+  /// No description provided for @alertNoBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a monthly budget to get spending alerts'**
+  String get alertNoBudget;
+
+  /// No description provided for @alertTopCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} is your biggest expense this month'**
+  String alertTopCategory(String category);
+
+  /// No description provided for @alertNoSpending.
+  ///
+  /// In en, this message translates to:
+  /// **'No spending recorded yet this month'**
+  String get alertNoSpending;
+
+  /// No description provided for @budgetTabSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} of {budget}'**
+  String budgetTabSpent(String amount, String budget);
+
+  /// No description provided for @budgetTabPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'You can spend about {amount} per day for the remaining {days} days.'**
+  String budgetTabPerDay(String amount, int days);
+
+  /// No description provided for @budgetTabOver.
+  ///
+  /// In en, this message translates to:
+  /// **'You are over budget this month.'**
+  String get budgetTabOver;
+
+  /// No description provided for @budgetTabEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit budget'**
+  String get budgetTabEdit;
+
+  /// No description provided for @topMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'Top merchants'**
+  String get topMerchants;
+
+  /// No description provided for @receiptCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} receipts'**
+  String receiptCount(int count);
+
+  /// No description provided for @noMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'No merchants yet this month.'**
+  String get noMerchants;
 }
 
 class _AppLocalizationsDelegate

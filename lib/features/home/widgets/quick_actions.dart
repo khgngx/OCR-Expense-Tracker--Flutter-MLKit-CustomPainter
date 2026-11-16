@@ -14,7 +14,8 @@ class QuickAction {
   final VoidCallback onTap;
 }
 
-/// Row of rounded-square shortcuts (Add Money / Send / ... in the reference).
+/// Four beige rounded squares with a label underneath (Add Money / Send /
+/// Convert / More in the reference).
 class QuickActions extends StatelessWidget {
   const QuickActions({super.key, required this.actions});
 
@@ -25,36 +26,36 @@ class QuickActions extends StatelessWidget {
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       for (final a in actions)
-        Expanded(
-          child: Semantics(
-            button: true,
-            label: a.label,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: a.onTap,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.line),
-                      ),
-                      child: Icon(a.icon, color: AppColors.forest),
+        Semantics(
+          button: true,
+          label: a.label,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: a.onTap,
+            child: SizedBox(
+              width: 72,
+              child: Column(
+                children: [
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: AppColors.tile,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      a.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelMedium,
+                    child: Icon(a.icon, color: AppColors.ink, size: 24),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    a.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
