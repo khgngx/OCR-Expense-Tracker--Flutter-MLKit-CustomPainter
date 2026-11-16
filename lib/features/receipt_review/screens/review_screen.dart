@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
@@ -7,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../app_scope.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/widgets/thumbnail_image.dart';
 import '../../../domain/models/category.dart';
 import '../../../domain/models/parsed_receipt.dart';
 import '../../../domain/models/receipt.dart';
@@ -15,20 +14,25 @@ import '../widgets/editable_field.dart';
 
 /// Lets the user check and fix OCR output (new scan) or edit a saved receipt.
 class ReviewScreen extends StatefulWidget {
-  const ReviewScreen._({super.key, this.existing, this.parsed, this.image});
+  const ReviewScreen._({
+    super.key,
+    this.existing,
+    this.parsed,
+    this.imageBytes,
+  });
 
   factory ReviewScreen.fromScan({
     Key? key,
     required ParsedReceipt parsed,
-    required File image,
-  }) => ReviewScreen._(key: key, parsed: parsed, image: image);
+    required Uint8List imageBytes,
+  }) => ReviewScreen._(key: key, parsed: parsed, imageBytes: imageBytes);
 
   factory ReviewScreen.edit({Key? key, required Receipt receipt}) =>
       ReviewScreen._(key: key, existing: receipt);
 
   final Receipt? existing;
   final ParsedReceipt? parsed;
-  final File? image;
+  final Uint8List? imageBytes;
 
   @override
   State<ReviewScreen> createState() => _ReviewScreenState();
@@ -106,7 +110,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       final existing = widget.existing;
       final id = existing?.id ?? const Uuid().v4();
       var thumbnail = existing?.thumbnailPath;
-      final image = widget.image;
+      final image = widget.imageBytes;
       if (image != null) {
         thumbnail = await deps.imageStorage.saveThumbnail(id, image);
       }
@@ -134,7 +138,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final image = widget.image;
+    final image = widget.imageBytes;
     final thumbnail = widget.existing?.thumbnailPath;
     return Scaffold(
       appBar: AppBar(
@@ -150,14 +154,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
             if (image != null || thumbnail != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  height: 160,
-                  child: Image.file(
-                    image ?? File(thumbnail!),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const SizedBox(),
-                  ),
-                ),
+                child: image != null
+                    ? Image.memory(
+                        image,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    : ThumbnailImage(reference: thumbnail!),
               ),
             const SizedBox(height: 16),
             EditableField(

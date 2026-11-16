@@ -92,6 +92,20 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
   }
 
+  Future<void> _loadDemoData() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final n = await AppScope.of(context).seedDemoData();
+      messenger.showSnackBar(
+        SnackBar(content: Text('Loaded $n demo receipts.')),
+      );
+    } on Exception catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not load demo data: $e')),
+      );
+    }
+  }
+
   Future<bool> _confirmDelete(Receipt r) async {
     final deps = AppScope.of(context);
     final ok = await showDialog<bool>(
@@ -119,7 +133,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Transactions')),
+    appBar: AppBar(
+      title: const Text('Transactions'),
+      actions: [
+        IconButton(
+          tooltip: 'Load demo data',
+          icon: const Icon(Icons.auto_awesome_outlined),
+          onPressed: _loadDemoData,
+        ),
+      ],
+    ),
     body: _body(),
   );
 
@@ -134,12 +157,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       );
     }
     if (_receipts.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.receipt_long_outlined,
         message: 'No receipts yet. Tap Scan to add one.',
+        action: FilledButton.tonalIcon(
+          onPressed: _loadDemoData,
+          icon: const Icon(Icons.auto_awesome_outlined),
+          label: const Text('Load demo data'),
+        ),
       );
     }
-    return ListView.builder(
+    final list = ListView.builder(
       controller: _scroll,
       padding: const EdgeInsets.only(bottom: 96),
       itemCount: _receipts.length,
@@ -167,6 +195,13 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           ),
         );
       },
+    );
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: list,
+      ),
     );
   }
 }

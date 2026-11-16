@@ -8,6 +8,7 @@ import 'package:ocr_expense_tracker/domain/models/receipt_line_item.dart';
 import 'package:ocr_expense_tracker/domain/usecases/get_daily_summary_usecase.dart';
 import 'package:ocr_expense_tracker/domain/usecases/get_weekly_spending_usecase.dart';
 import 'package:ocr_expense_tracker/domain/usecases/save_receipt_usecase.dart';
+import 'package:ocr_expense_tracker/domain/usecases/seed_demo_data_usecase.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Receipt _receipt(
@@ -108,4 +109,22 @@ void main() {
     expect(week.last.total, 100);
     expect(week[3].total, 0);
   });
+
+  test(
+    'demo seed is idempotent and lands inside the dashboard windows',
+    () async {
+      final now = DateTime(2026, 11, 16, 12);
+      final seed = SeedDemoDataUsecase(repo, now: () => now);
+      await seed();
+      await seed();
+      expect((await repo.getAll(limit: 100)).length, SeedDemoDataUsecase.count);
+      final week = await GetWeeklySpendingUsecase(repo)(now);
+      expect(week.where((d) => d.total > 0).length, greaterThanOrEqualTo(5));
+      final month = await repo.getBetween(
+        DateTime(2026, 11),
+        DateTime(2026, 12),
+      );
+      expect(month, isNotEmpty);
+    },
+  );
 }

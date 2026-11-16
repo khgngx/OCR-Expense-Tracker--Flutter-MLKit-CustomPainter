@@ -6,7 +6,8 @@ import 'domain/usecases/get_daily_summary_usecase.dart';
 import 'domain/usecases/get_weekly_spending_usecase.dart';
 import 'domain/usecases/parse_receipt_text_usecase.dart';
 import 'domain/usecases/save_receipt_usecase.dart';
-import 'features/camera_scan/services/ml_kit_ocr_service.dart';
+import 'domain/usecases/seed_demo_data_usecase.dart';
+import 'features/camera_scan/services/ocr_service.dart';
 
 /// Hand-wired dependencies; features read them through [AppScope].
 class AppDependencies {
@@ -16,7 +17,8 @@ class AppDependencies {
     required this.ocrService,
   }) : saveReceipt = SaveReceiptUsecase(receiptRepository),
        getDailySummary = GetDailySummaryUsecase(receiptRepository),
-       getWeeklySpending = GetWeeklySpendingUsecase(receiptRepository);
+       getWeeklySpending = GetWeeklySpendingUsecase(receiptRepository),
+       seedDemoData = SeedDemoDataUsecase(receiptRepository);
 
   final ReceiptRepository receiptRepository;
   final ImageStorageService imageStorage;
@@ -26,6 +28,7 @@ class AppDependencies {
   final SaveReceiptUsecase saveReceipt;
   final GetDailySummaryUsecase getDailySummary;
   final GetWeeklySpendingUsecase getWeeklySpending;
+  final SeedDemoDataUsecase seedDemoData;
 }
 
 class AppScope extends InheritedWidget {

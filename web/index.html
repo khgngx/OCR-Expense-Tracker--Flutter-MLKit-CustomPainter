@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    Replaced at build time by `flutter build web --base-href`. Keep the
+    placeholder: GitHub Pages serves the app from /<repo-name>/.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <!-- Fixed scale: the app is laid out by Flutter, pinch-zoom would break the PWA feel. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Scan receipts with OCR, track expenses and see charts drawn with CustomPainter.">
+  <meta name="theme-color" content="#2E7D6B">
+
+  <!-- iOS: Add to Home Screen opens fullscreen without Safari chrome -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Expenses">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>OCR Expense Tracker</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { margin: 0; height: 100%; overscroll-behavior: none; background: #2E7D6B; }
+  </style>
+
+  <!--
+    Browser-side OCR for the web build (ML Kit has no web version). Pinned
+    version; the image never leaves the browser, only this library and the
+    language data are downloaded.
+  -->
+  <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

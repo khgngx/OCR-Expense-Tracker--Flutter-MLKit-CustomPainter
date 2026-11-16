@@ -1,39 +1,28 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
-class ImageStorageService {
-  ImageStorageService({this.baseDir});
+/// Stores receipt thumbnails. The returned reference is opaque to callers: a
+/// file path on mobile, a data URI on web (no filesystem there).
+abstract class ImageStorageService {
+  Future<String> saveThumbnail(String receiptId, Uint8List imageBytes);
 
-  static const int _thumbnailWidth = 480;
+  /// Bytes behind [reference], or null when missing/unreadable.
+  Future<Uint8List?> load(String? reference);
 
-  final Directory? baseDir;
+  Future<void> delete(String? reference);
+}
 
-  Future<Directory> _dir() async {
-    final root = baseDir ?? await getApplicationDocumentsDirectory();
-    return Directory(p.join(root.path, 'thumbnails')).create(recursive: true);
+const int thumbnailWidth = 480;
+
+/// Downscales [imageBytes] to a JPEG no wider than [thumbnailWidth].
+Uint8List makeThumbnailBytes(Uint8List imageBytes) {
+  final decoded = img.decodeImage(imageBytes);
+  if (decoded == null) {
+    throw const FormatException('Cannot decode the image for a thumbnail.');
   }
-
-  /// Downscales [source] to a JPEG thumbnail named after [receiptId] and
-  /// returns its path.
-  Future<String> saveThumbnail(String receiptId, File source) async {
-    final decoded = img.decodeImage(await source.readAsBytes());
-    if (decoded == null) {
-      throw FormatException('Cannot decode image at ${source.path}');
-    }
-    final resized = decoded.width > _thumbnailWidth
-        ? img.copyResize(decoded, width: _thumbnailWidth)
-        : decoded;
-    final file = File(p.join((await _dir()).path, '$receiptId.jpg'));
-    await file.writeAsBytes(img.encodeJpg(resized, quality: 80));
-    return file.path;
-  }
-
-  Future<void> delete(String? path) async {
-    if (path == null) return;
-    final file = File(path);
-    if (await file.exists()) await file.delete();
-  }
+  final resized = decoded.width > thumbnailWidth
+      ? img.copyResize(decoded, width: thumbnailWidth)
+      : decoded;
+  return img.encodeJpg(resized, quality: 80);
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app_scope.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/layout/breakpoints.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../domain/models/category.dart';
@@ -70,27 +71,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? Center(child: Text('Could not load data: $_error'))
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-              children: [
-                Text('This month', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 12),
-                _MonthPie(totals: _monthTotals),
-                const SizedBox(height: 28),
-                Text('Last 7 days', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 12),
-                _WeekBars(week: _week),
-              ],
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final month = _Section(
+                      title: 'This month',
+                      child: _MonthPie(totals: _monthTotals),
+                    );
+                    final week = _Section(
+                      title: 'Last 7 days',
+                      child: _WeekBars(week: _week),
+                    );
+                    final twoColumns =
+                        constraints.maxWidth >= Breakpoints.dashboardTwoColumn;
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                      children: [
+                        if (twoColumns)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: month),
+                              const SizedBox(width: 32),
+                              Expanded(child: week),
+                            ],
+                          )
+                        else ...[
+                          month,
+                          const SizedBox(height: 28),
+                          week,
+                        ],
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
     );
   }
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(title, style: Theme.of(context).textTheme.titleMedium),
+      const SizedBox(height: 12),
+      child,
+    ],
+  );
 }
 
 class _MonthPie extends StatelessWidget {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -12,8 +13,12 @@ class AppDatabase {
 
   /// [path] is injectable so tests can use an in-memory database.
   static Future<AppDatabase> open({String? path}) async {
+    // Web has no filesystem path; the database is just a named IndexedDB store.
     final dbPath =
-        path ?? p.join(await getDatabasesPath(), 'expense_tracker.db');
+        path ??
+        (kIsWeb
+            ? 'expense_tracker.db'
+            : p.join(await getDatabasesPath(), 'expense_tracker.db'));
     final db = await openDatabase(
       dbPath,
       version: latestSchemaVersion,
