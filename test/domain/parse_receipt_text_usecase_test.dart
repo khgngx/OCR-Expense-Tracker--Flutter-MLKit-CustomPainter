@@ -41,6 +41,42 @@ Tổng cộng 89.640
       expect(r.total, 35000);
     });
 
+    test(
+      'uses the accented total keyword even when a larger amount follows',
+      () {
+        const text = '''
+Shop
+Cà phê 45.000
+Tổng cộng 45.000
+Tiền khách đưa 500.000
+''';
+        final r = parser(text);
+        expect(r.total, 45000);
+        expect(r.lineItems.map((i) => i.name), ['Cà phê']);
+      },
+    );
+
+    test('zero-padded ids and the year are not read as money', () {
+      const text = '''
+Shop
+Số HĐ: 00012345
+Ngày 12/03/2025
+Item A 20.000
+''';
+      final r = parser(text);
+      expect(r.receiptNumber, '00012345');
+      expect(r.total, 20000);
+      expect(r.lineItems.length, 1);
+    });
+
+    test('keeps the original case of the receipt number', () {
+      expect(parser('Shop\nBill No: SM-778812').receiptNumber, 'SM-778812');
+    });
+
+    test('categorizes accented merchants', () {
+      expect(parser('NHÀ SÁCH FAHASA\nTổng 10.000').category, Category.study);
+    });
+
     test('rejects impossible dates', () {
       expect(parser('Shop\n45/13/2025').dateTime, isNull);
     });
