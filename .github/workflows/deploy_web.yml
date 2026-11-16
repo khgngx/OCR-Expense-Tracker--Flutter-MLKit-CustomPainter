@@ -22,6 +22,9 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
+          # Pinned to the version the app is developed and tested with; newer
+          # stable releases add analyzer deprecations that fail `flutter analyze`.
+          flutter-version: 3.47.7
           channel: stable
           cache: true
 
